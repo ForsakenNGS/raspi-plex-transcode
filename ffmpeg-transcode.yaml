@@ -1,0 +1,29 @@
+'executable': '/home/pi/plex-media-server-ffmpeg/ffmpeg'
+'profiles':
+  'default':
+    'input':
+    'output':
+      '-codec:0': 'h264_v4l2m2m'
+      '-crf:0': '10'
+      '-minrate:0': '1M'
+      '-maxrate:0': '5M'
+      '-bufsize:0': '10M'
+      '-seg_duration': '2'
+  'anime':
+    'input':
+    'output':
+      '-codec:0': 'h264_v4l2m2m'
+      '-crf:0': '5'
+      '-maxrate:0': '3M'
+      '-bufsize:0': '10M'
+      '-seg_duration': '2'
+'profile_select':
+  'default': 'default'
+  'by_argument':
+    -
+      'argSection': 'input'
+      'argName': '-i'
+      'type': 'regex'
+      'ignorecase': true
+      'value': '.*anime.*'
+      'profile': 'anime'
