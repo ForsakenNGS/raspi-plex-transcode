@@ -11,8 +11,6 @@ Hardware decoding of h264 will NOT WORK if the gpu memory is limited. I had adde
 
 Here is what I did to compile the plex-fork of ffmpeg:
 
-**If someone knows how to get h264_omx working I would love to know (and share) how! Feel free to write an issue or message**
-
 ```
 cd /home/pi
 cat /usr/lib/plexmediaserver/Resources/LICENSE | grep "Plex Transcoder"
@@ -22,9 +20,9 @@ tar -xvf plex-media-server-ffmpeg-gpl-*.tar.gz
 rm plex-media-server-ffmpeg-gpl-*.tar.gz
 mv plex-media-server-ffmpeg-gpl-* plex-media-server-ffmpeg
 cd plex-media-server-ffmpeg
-sudo apt install libass-dev libaom-dev libxvidcore-dev libvorbis-dev libv4l-dev libx265-dev libx264-dev libwebp-dev libspeex-dev librtmp-dev libopus-dev libmp3lame-dev libdav1d-dev libopencore-amrnb-dev libopencore-amrwb-dev libsnappy-dev libsoxr-dev libssh-dev libxml2-dev
+sudo apt install libass-dev libaom-dev libxvidcore-dev libvorbis-dev libv4l-dev libx265-dev libx264-dev libwebp-dev libspeex-dev librtmp-dev libopus-dev libmp3lame-dev libdav1d-dev libopencore-amrnb-dev libopencore-amrwb-dev libsnappy-dev libsoxr-dev libssh-dev libxml2-dev libomxil-bellagio-dev
 # If you want to apply patches or make changes to the ffmpeg source, do it here
-./configure --extra-cflags="-I/usr/local/include" --extra-ldflags="-L/usr/local/lib" --extra-libs="-lpthread -lm -latomic" --enable-gmp --enable-gpl --enable-libaom --enable-libass --enable-libdav1d --enable-libfreetype --enable-libmp3lame --enable-libopencore-amrnb --enable-libopencore-amrwb --enable-libopus --enable-librtmp --enable-libsnappy --enable-libsoxr --enable-libssh --enable-libvorbis --enable-libvpx --enable-libwebp --enable-libx264 --enable-libx265 --enable-libxml2 --enable-mmal --enable-nonfree --enable-version3 --target-os=linux --enable-pthreads --enable-openssl --enable-hardcoded-tables
+./configure --extra-cflags="-I/usr/local/include" --extra-ldflags="-L/usr/local/lib" --extra-libs="-lpthread -lm -latomic" --enable-gmp --enable-gpl --enable-libaom --enable-libass --enable-libdav1d --enable-libfreetype --enable-libmp3lame --enable-libopencore-amrnb --enable-libopencore-amrwb --enable-libopus --enable-librtmp --enable-libsnappy --enable-libsoxr --enable-libssh --enable-libvorbis --enable-libvpx --enable-libwebp --enable-libx264 --enable-libx265 --enable-libxml2 --enable-mmal --enable-omx --enable-nonfree --enable-version3 --target-os=linux --enable-pthreads --enable-openssl --enable-hardcoded-tables
 make -j5
 ```
 
@@ -40,5 +38,5 @@ sudo mv 'Plex Transcoder' 'Plex Transcoder Backup'
 sudo ln -s /home/pi/plex-media-server-ffmpeg/ffmpeg-transcode 'Plex Transcoder'
 ```
 
-This will replace the output video encoder with the one defined in the script. (by default `h264_v4l2m2m`)
+This will replace the output video encoder with the one defined in the script. (by default `h264_omx`)
 Also it increases the buffer size (double of default) and allows to change the segment duration of the chunks that are being rendered.
