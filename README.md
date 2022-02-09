@@ -24,6 +24,7 @@ sudo apt install libass-dev libaom-dev libxvidcore-dev libvorbis-dev libv4l-dev 
 # If you want to apply patches or make changes to the ffmpeg source, do it here
 ./configure --extra-cflags="-I/usr/local/include" --extra-ldflags="-L/usr/local/lib" --extra-libs="-lpthread -lm -latomic" --enable-gmp --enable-gpl --enable-libaom --enable-libass --enable-libdav1d --enable-libfreetype --enable-libmp3lame --enable-libopencore-amrnb --enable-libopencore-amrwb --enable-libopus --enable-librtmp --enable-libsnappy --enable-libsoxr --enable-libssh --enable-libvorbis --enable-libvpx --enable-libwebp --enable-libx264 --enable-libx265 --enable-libxml2 --enable-mmal --enable-omx --enable-nonfree --enable-version3 --target-os=linux --enable-pthreads --enable-openssl --enable-hardcoded-tables
 make -j5
+sudo usermod -a -G video plex
 ```
 
 # Hooking into the plex transcode process
