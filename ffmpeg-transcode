@@ -1,6 +1,8 @@
 #!/bin/bash
 
 VIDEO_OUTPUT_CODEC="h264_v4l2m2m"
+BUFFER_SIZE="99792k"
+SEGMENT_DURATION="1"
 
 ARGUMENTS=()
 ARG_TYPE="input"
@@ -17,8 +19,16 @@ do
   elif [ "$ARG_TYPE" = "input" ]; then
     # Output options
     if [ "$ARG_PREV" = "-codec:0" ]; then
-      # Change output codec here
+      # Change output codec
       ARG="$VIDEO_OUTPUT_CODEC"
+    fi
+    if [ "$ARG_PREV" = "-bufsize:0" ]; then
+      # Change buffer size
+      ARG="$BUFFER_SIZE"
+    fi
+    if [ "$ARG_PREV" = "-seg_duration" ]; then
+      # Change segment duration
+      ARG="$SEGMENT_DURATION"
     fi
   fi
   ARGUMENTS+=("$ARG")
