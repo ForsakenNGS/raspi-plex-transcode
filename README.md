@@ -9,6 +9,10 @@ Hardware decoding of h264 will NOT WORK if the gpu memory is limited. I had adde
 
 # Compiling plex ffmpeg with custom options
 
+Here is what I did to compile the plex-fork of ffmpeg:
+
+**If someone knows how to get h264_omx working I would love to know (and share) how! Feel free to write an issue or message**
+
 ```
 cd /home/pi
 cat /usr/lib/plexmediaserver/Resources/LICENSE | grep "Plex Transcoder"
