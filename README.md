@@ -1,11 +1,15 @@
 # raspi-plex-transcode
 Help for manipulating the plex-media-server transcode on the raspberry pi
 
-# Ensure hardware decoding works
+# Ensure hardware decoding works and your firmware is up to date
 
 As mentioned in this forum post: https://forums.raspberrypi.com/viewtopic.php?t=262558
 
 Hardware decoding of h264 will NOT WORK if the gpu memory is limited. I had added `gpu=16` in my `config.txt` since I run my pi headless and thought it to be a waste of ram. Setting it to `gpu=128` (the default) should be fine.
+
+Brought to my attention by "fancybits" in the plex forums it is recommended to update the rpi kernel and firmware by running `sudo rpi-update`.
+
+https://forums.plex.tv/t/hardware-transcoding-for-raspberry-pi-4-plex-media-server/538779/236
 
 # Compiling plex ffmpeg with custom options
 
