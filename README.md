@@ -33,7 +33,7 @@ wget https://raw.githubusercontent.com/ForsakenNGS/raspi-plex-transcode/main/ffm
 chmod +x ffmpeg-transcode
 cd /usr/lib/plexmediaserver/
 sudo mv 'Plex Transcoder' 'Plex Transcoder Backup'
-sudo ln -s /home/pi/plex-media-server-ffmpeg/ffmpeg 'Plex Transcoder'
+sudo ln -s /home/pi/plex-media-server-ffmpeg/ffmpeg-transcode 'Plex Transcoder'
 ```
 
 This will replace the output video encoder with the one defined in the script. (by default `h264_v4l2m2m`)
