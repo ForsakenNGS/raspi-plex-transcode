@@ -1,37 +1,145 @@
-#!/bin/bash
+#!/usr/bin/env python
 
-VIDEO_OUTPUT_CODEC="h264_v4l2m2m"
-BUFFER_SIZE="99792k"
-SEGMENT_DURATION="2"
+import re
+import yaml
+import os
+import sys
+import subprocess
 
-ARGUMENTS=()
-ARG_TYPE="input"
-ARG_PREV=""
-for ARG in "$@"
-do
-  # Switch arg type when input file was reached
-  # Handle parameters
-  if [ "$ARG_TYPE" = "input" ]; then
-    # Input options
-    if [ "$ARG" = "-i" ]; then
-      ARG_TYPE="output"
-    fi
-  elif [ "$ARG_TYPE" = "output" ]; then
-    # Output options
-    if [ "$ARG_PREV" = "-codec:0" ]; then
-      # Change output codec
-      ARG="$VIDEO_OUTPUT_CODEC"
-    fi
-    if [ "$ARG_PREV" = "-bufsize:0" ]; then
-      # Change buffer size
-      ARG="$BUFFER_SIZE"
-    fi
-    if [ "$ARG_PREV" = "-seg_duration" ]; then
-      # Change segment duration
-      ARG="$SEGMENT_DURATION"
-    fi
-  fi
-  ARGUMENTS+=("$ARG")
-  ARG_PREV="$ARG"
-done
-exec "/home/pi/plex-media-server-ffmpeg/ffmpeg" "${ARGUMENTS[@]}"
+def load_configuration():
+  #print("Loading configuration...")
+  config = None
+  configFile = os.path.dirname(os.path.realpath(__file__))+"/ffmpeg-transcode.yaml"
+  if not os.path.isfile(configFile):
+    # Download default config file via wget
+    subprocess.run(["wget", "-q", "https://github.com/ForsakenNGS/raspi-plex-transcode/raw/main/ffmpeg-transcode.yaml", "-O", configFile]);
+  # Open and parse configuration file
+  with open(configFile, "r") as stream:
+    try:
+      config = yaml.safe_load(stream)
+    except yaml.YAMLError as e:
+      print("Error loading config: "+configFile)
+      print(e)
+  return config
+
+def parse_argument_value(value):
+  if value is None:
+    return None
+  else:
+    return " ".join(value)
+
+def parse_arguments():
+  #print("Parsing commandline arguments...")
+  arguments = {
+    "input": {},
+    "output": {}
+  }
+  argSection = "input"
+  argName = None
+  argValue = None
+  for arg in sys.argv:
+    if arg.startswith("-"):
+      if argName is not None:
+        arguments[argSection][argName] = parse_argument_value(argValue)
+        if argName == "-i":
+          argSection = "output"
+      argName = arg
+      argValue = None
+    else:
+      if argValue is None:
+        argValue = []
+      argValue.append(arg)
+  if argName is not None:
+    arguments[argSection][argName] = parse_argument_value(argValue)
+  return arguments
+
+def profile_condition_arg(condition, arguments, currentProfile, currentPriority):
+  # Check priority
+  conditionPriority = 0
+  if "priority" in condition:
+    conditionPriority = condition["priority"]
+  if conditionPriority <= currentPriority:
+    return currentProfile, currentPriority
+  # Get argument value
+  if not condition["argName"] in arguments[condition["argSection"]]:
+    if condition["type"] == "missing":
+      # Matches if argument is missing
+      return condition["profile"], conditionPriority
+    else:
+      # Condition type requires argument to be present
+      return currentProfile, currentPriority
+  value = arguments[condition["argSection"]][condition["argName"]]
+  # Check condition
+  if condition["type"] == "present":
+    # Matches as soon as the argument is present
+    return condition["profile"], conditionPriority
+  elif condition["type"] == "exact":
+    # Exact value match
+    if condition["value"] == value:
+      return condition["profile"], conditionPriority
+  elif condition["type"] == "regex":
+    # Regular expression match
+    regexFlags = 0
+    if ("ignorecase" in condition) and condition["ignorecase"]:
+      regexFlags += re.IGNORECASE
+    regexPattern = re.compile(condition["value"], regexFlags)
+    if regexPattern.match(value):
+      return condition["profile"], conditionPriority
+  return currentProfile, currentPriority
+
+def profile_select(config, arguments):
+  #print("Evaluating target profile...")
+  profileName = None
+  profilePriority = -1
+  if not "profile_select" in config:
+    return None
+  if "default" in config["profile_select"]:
+    profileName = config["profile_select"]["default"]
+  if "by_argument" in config["profile_select"]:
+    for condition in config["profile_select"]["by_argument"]:
+      profileName, profilePriority = profile_condition_arg(condition, arguments, profileName, profilePriority)
+  if profileName in config["profiles"]:
+    return config["profiles"][profileName]
+  else:
+    return None
+
+def profile_parameters(profile, arguments):
+  if profile is not None:
+    # Apply profile overrides
+    if profile["input"] is not None:
+      for argName in profile["input"]:
+        arguments["input"][argName] = profile["input"][argName]
+    if profile["output"] is not None:
+      for argName in profile["output"]:
+        arguments["output"][argName] = profile["output"][argName]
+  # Get input filename and remove it from parameters (to ensure correct order)
+  inputFile = arguments["input"]["-i"]
+  del arguments["input"]["-i"]
+  # Build parameter list
+  parameters = []
+  for argName in arguments["input"]:
+    parameters.append(argName)
+    if arguments["input"][argName] is not None:
+      parameters.append(arguments["input"][argName])
+  parameters.append("-i")
+  parameters.append(inputFile)
+  for argName in arguments["output"]:
+    parameters.append(argName)
+    if arguments["output"][argName] is not None:
+      parameters.append(arguments["output"][argName])
+  return parameters
+
+
+config = load_configuration()
+if config is None:
+  print("Failed to load configuration! Exiting.")
+  sys.exit(1)
+arguments = parse_arguments()
+profile = profile_select(config, arguments)
+parameters = profile_parameters(profile, arguments)
+executable = config["executable"]
+
+parameters.insert(0, executable)
+#print(parameters)
+result = subprocess.run(parameters)
+sys.exit(result.returncode)
