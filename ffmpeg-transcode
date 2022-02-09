@@ -1,0 +1,27 @@
+#!/bin/bash
+
+VIDEO_OUTPUT_CODEC="h264_v4l2m2m"
+
+ARGUMENTS=()
+ARG_TYPE="input"
+ARG_PREV=""
+for ARG in "$@"
+do
+  # Switch arg type when input file was reached
+  # Handle parameters
+  if [ "$ARG_TYPE" = "input" ]; then
+    # Input options
+    if [ "$ARG" = "-i" ]; then
+      ARG_TYPE="output"
+    fi
+  elif [ "$ARG_TYPE" = "input" ]; then
+    # Output options
+    if [ "$ARG_PREV" = "-codec:0" ]; then
+      # Change output codec here
+      ARG="$VIDEO_OUTPUT_CODEC"
+    fi
+  fi
+  ARGUMENTS+=("$ARG")
+  ARG_PREV="$ARG"
+done
+exec "/home/pi/plex-media-server-ffmpeg/ffmpeg" "${ARGUMENTS[@]}"
