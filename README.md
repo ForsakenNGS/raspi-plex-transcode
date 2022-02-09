@@ -37,3 +37,4 @@ sudo ln -s /home/pi/plex-media-server-ffmpeg/ffmpeg-transcode 'Plex Transcoder'
 ```
 
 This will replace the output video encoder with the one defined in the script. (by default `h264_v4l2m2m`)
+Also it increases the buffer size (double of default) and allows to change the segment duration of the chunks that are being rendered.
