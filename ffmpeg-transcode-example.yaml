@@ -1,4 +1,4 @@
-'executable': '/home/pi/plex-media-server-ffmpeg/ffmpeg'
+'executable': '/home/pi/raspi-plex-transcode/plex-media-server-ffmpeg/ffmpeg'
 'log': '/var/lib/plexmediaserver/plex-transcoder.log'
 'profiles':
   'h264':
