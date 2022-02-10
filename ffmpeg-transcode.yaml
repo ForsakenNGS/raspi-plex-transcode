@@ -5,7 +5,7 @@
     'input':
     'output':
       '-codec:0': 'h264_v4l2m2m'
-      '-b:v': '1M'
+      '-b:v': '5M'
       '-crf:0': '10'
       '-maxrate:0': '50M'
       '-bufsize:0': '10M'
@@ -13,7 +13,7 @@
     'input':
     'output':
       '-codec:0': 'h264_v4l2m2m'
-      '-b:v': '500k'
+      '-b:v': '4M'
       '-crf:0': '10'
       '-maxrate:0': '50M'
       '-bufsize:0': '10M'
