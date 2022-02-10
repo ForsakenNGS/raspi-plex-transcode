@@ -11,7 +11,19 @@ Brought to my attention by "fancybits" in the plex forums it is recommended to u
 
 https://forums.plex.tv/t/hardware-transcoding-for-raspberry-pi-4-plex-media-server/538779/236
 
+# Getting started
+
+Log into your pi (as user `pi`) and cd into your home directory. (You can install this somewhere else if you update the configuration file accordingly)
+
+Download this repository with git and cd into it using:
+```
+git clone https://github.com/ForsakenNGS/raspi-plex-transcode.git
+cd raspi-plex-transcode
+```
+
 # Compiling plex ffmpeg with custom options
+
+
 
 Here is what I did to compile the plex-fork of ffmpeg:
 
