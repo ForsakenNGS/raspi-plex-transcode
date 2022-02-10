@@ -1,7 +1,7 @@
 'executable': '/home/pi/plex-media-server-ffmpeg/ffmpeg'
 'log': '/var/lib/plexmediaserver/plex-transcoder.log'
 'profiles':
-  'default':
+  'h264':
     'input':
     'output':
       '-codec:0': 'h264_v4l2m2m'
@@ -9,21 +9,11 @@
       '-crf:0': '10'
       '-maxrate:0': '50M'
       '-bufsize:0': '10M'
-  'anime':
-    'input':
-    'output':
-      '-codec:0': 'h264_v4l2m2m'
-      '-b:v': '4M'
-      '-crf:0': '10'
-      '-maxrate:0': '50M'
-      '-bufsize:0': '10M'
 'profile_select':
-  'default': 'default'
   'by_argument':
     -
-      'argSection': 'input'
-      'argName': '-i'
-      'type': 'regex'
-      'ignorecase': true
-      'value': '.*anime.*'
-      'profile': 'anime'
+      'argSection': 'output'
+      'argName': '-codec:0'
+      'type': 'exact'
+      'value': 'libx264'
+      'profile': 'h264'
