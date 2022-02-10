@@ -9,6 +9,7 @@
       '-crf:0': '10'
       '-maxrate:0': '50M'
       '-bufsize:0': '10M'
+      '-segment_format': '**REMOVE**'
 'profile_select':
   'by_argument':
     -
