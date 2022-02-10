@@ -129,12 +129,21 @@ def profile_parameters(profile):
         arg = argumentRepl[argSection][argName]
         del argumentRepl[argSection][argName]
     # Check for end of input arguments
-    if argName == "-i":
+    if arg == "-i":
       # Add parameters that were not present in the inital call from plex
       for argNameNew in argumentRepl[argSection]:
-        parameters.append(argNameNew)
-        if argumentRepl[argSection][argNameNew] is not None:
-          parameters.append(argumentRepl[argSection][argNameNew])
+        if not argNameNew in sys.argv:
+          parameters.append(argNameNew)
+          if argumentRepl[argSection][argNameNew] is not None:
+            parameters.append(argumentRepl[argSection][argNameNew])
+    # Check for end of output arguments
+    if arg == "-init_seg_name":
+      # Add parameters that were not present in the inital call from plex
+      for argNameNew in argumentRepl[argSection]:
+        if not argNameNew in sys.argv:
+          parameters.append(argNameNew)
+          if argumentRepl[argSection][argNameNew] is not None:
+            parameters.append(argumentRepl[argSection][argNameNew])
     # Append to parameter list
     parameters.append(arg)
     # Update state
@@ -144,11 +153,6 @@ def profile_parameters(profile):
       if argName == "-i":
         argSection = "output"
       argName = None
-  # Add parameters that were not present in the inital call from plex
-  for argNameNew in argumentRepl[argSection]:
-    parameters.append(argNameNew)
-    if argumentRepl[argSection][argNameNew] is not None:
-      parameters.append(argumentRepl[argSection][argNameNew])
   return parameters
 
 
@@ -161,6 +165,11 @@ profile = profile_select(config, arguments)
 parameters = profile_parameters(profile)
 executable = config["executable"]
 parameters.insert(0, executable)
+
+if ("log" in config) and ("debug" in config):
+  with open(config["log"], "a") as logfile:
+    logfile.write("Starting transcode at "+datetime.now().strftime("%Y-%m-%d %H:%M:%S")+"\n")
+    logfile.write("Commandline: "+join(parameters)+"\n\n\n")
 
 # Start transcode process
 result = subprocess.run(parameters)
