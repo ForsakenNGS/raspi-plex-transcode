@@ -5,6 +5,8 @@ import yaml
 import os
 import sys
 import subprocess
+from shlex import join
+from datetime import datetime
 
 def load_configuration():
   #print("Loading configuration...")
@@ -158,9 +160,17 @@ arguments = parse_arguments()
 profile = profile_select(config, arguments)
 parameters = profile_parameters(profile)
 executable = config["executable"]
-
 parameters.insert(0, executable)
-#from shlex import join
-#print(join(parameters))
+
+# Start transcode process
 result = subprocess.run(parameters)
+
+# Log transcode fail
+if result.returncode > 0:
+  if "log" in config:
+    with open(config["log"], "a") as logfile:
+      logfile.write("Failed transcode at "+datetime.now().strftime("%Y-%m-%d %H:%M:%S")+"\n")
+      logfile.write("Commandline: "+join(parameters)+"\n")
+      logfile.write("Return code: "+str(result.returncode)+"\n\n\n")
+
 sys.exit(result.returncode)

@@ -1,4 +1,5 @@
 'executable': '/home/pi/plex-media-server-ffmpeg/ffmpeg'
+'log': '/var/lib/plexmediaserver/plex-transcoder.log'
 'profiles':
   'default':
     'input':
