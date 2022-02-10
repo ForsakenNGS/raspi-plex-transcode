@@ -11,6 +11,18 @@ Brought to my attention by "fancybits" in the plex forums it is recommended to u
 
 https://forums.plex.tv/t/hardware-transcoding-for-raspberry-pi-4-plex-media-server/538779/236
 
+# TLDR Install
+
+```
+cd ~
+mkdir plex-backup
+cp "/usr/lib/plexmediaserver/Plex Transcoder" plex-backup/
+git clone https://github.com/ForsakenNGS/raspi-plex-transcode.git
+cd raspi-plex-transcode
+./compile.sh
+./install.sh
+```
+
 # Getting started
 
 Log into your pi (as user `pi`) and cd into your home directory. (You can install this somewhere else if you update the configuration file accordingly)
@@ -62,18 +74,6 @@ First of all make sure you are in the directory of this projects git repository.
 Now simply run `./uninstall.sh` which will do the following:
 - Remove the original plex transcoder script `/usr/lib/plexmediaserver/Plex Transcoder` **(will ask for superuser permissions)**
 - Move the backup of the original plex transcoder script `/usr/lib/plexmediaserver/Plex Transcoder Backup` back into its proper place at `/usr/lib/plexmediaserver/Plex Transcoder` **(will ask for superuser permissions)**
-
-# TLDR Install
-
-```
-cd ~
-mkdir plex-backup
-cp "/usr/lib/plexmediaserver/Plex Transcoder" plex-backup/
-git clone https://github.com/ForsakenNGS/raspi-plex-transcode.git
-cd raspi-plex-transcode
-./compile.sh
-./install.sh
-```
 
 # Configuration
 
