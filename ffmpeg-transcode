@@ -124,26 +124,30 @@ def profile_parameters(profile):
   argName = None
   for arg in sys.argv[1:]:
     # Apply replacement if present
+    replacement = None
     if argName is not None:
       if argName in argumentRepl[argSection]:
-        arg = argumentRepl[argSection][argName]
+        replacement = argumentRepl[argSection][argName]
         del argumentRepl[argSection][argName]
-    # Check for end of input arguments
-    if arg == "-i":
+    if replacement is not None:
+      if replacement == "**REMOVE**":
+        del parameters[-1]
+        argName = None
+        if not arg.startswith("-"):
+          continue
+      elif not arg.startswith("-"):
+        arg = replacement
+    # Check for end of input/output arguments
+    if (arg == "-i") or (arg == "-segment_header_filename"):
       # Add parameters that were not present in the inital call from plex
       for argNameNew in argumentRepl[argSection]:
+        argValueNew = argumentRepl[argSection][argNameNew]
+        if argValueNew == "**REMOVE**":
+          continue
         if not argNameNew in sys.argv:
           parameters.append(argNameNew)
-          if argumentRepl[argSection][argNameNew] is not None:
-            parameters.append(argumentRepl[argSection][argNameNew])
-    # Check for end of output arguments
-    if arg == "-init_seg_name":
-      # Add parameters that were not present in the inital call from plex
-      for argNameNew in argumentRepl[argSection]:
-        if not argNameNew in sys.argv:
-          parameters.append(argNameNew)
-          if argumentRepl[argSection][argNameNew] is not None:
-            parameters.append(argumentRepl[argSection][argNameNew])
+          if argValueNew is not None:
+            parameters.append(argValueNew)
     # Append to parameter list
     parameters.append(arg)
     # Update state
