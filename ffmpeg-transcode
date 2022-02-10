@@ -37,7 +37,7 @@ def parse_arguments():
   argSection = "input"
   argName = None
   argValue = None
-  for arg in sys.argv:
+  for arg in sys.argv[1:]:
     if arg.startswith("-"):
       if argName is not None:
         arguments[argSection][argName] = parse_argument_value(argValue)
@@ -103,30 +103,50 @@ def profile_select(config, arguments):
   else:
     return None
 
-def profile_parameters(profile, arguments):
+def profile_parameters(profile):
+  argumentRepl = {
+    "input": {},
+    "output": {}
+  }
   if profile is not None:
     # Apply profile overrides
     if profile["input"] is not None:
       for argName in profile["input"]:
-        arguments["input"][argName] = profile["input"][argName]
+        argumentRepl["input"][argName] = profile["input"][argName]
     if profile["output"] is not None:
       for argName in profile["output"]:
-        arguments["output"][argName] = profile["output"][argName]
-  # Get input filename and remove it from parameters (to ensure correct order)
-  inputFile = arguments["input"]["-i"]
-  del arguments["input"]["-i"]
+        argumentRepl["output"][argName] = profile["output"][argName]
   # Build parameter list
   parameters = []
-  for argName in arguments["input"]:
-    parameters.append(argName)
-    if arguments["input"][argName] is not None:
-      parameters.append(arguments["input"][argName])
-  parameters.append("-i")
-  parameters.append(inputFile)
-  for argName in arguments["output"]:
-    parameters.append(argName)
-    if arguments["output"][argName] is not None:
-      parameters.append(arguments["output"][argName])
+  argSection = "input"
+  argName = None
+  for arg in sys.argv[1:]:
+    # Apply replacement if present
+    if argName is not None:
+      if argName in argumentRepl[argSection]:
+        arg = argumentRepl[argSection][argName]
+        del argumentRepl[argSection][argName]
+    # Check for end of input arguments
+    if argName == "-i":
+      # Add parameters that were not present in the inital call from plex
+      for argNameNew in argumentRepl[argSection]:
+        parameters.append(argNameNew)
+        if argumentRepl[argSection][argNameNew] is not None:
+          parameters.append(argumentRepl[argSection][argNameNew])
+    # Append to parameter list
+    parameters.append(arg)
+    # Update state
+    if arg.startswith("-"):
+      argName = arg
+    else:
+      if argName == "-i":
+        argSection = "output"
+      argName = None
+  # Add parameters that were not present in the inital call from plex
+  for argNameNew in argumentRepl[argSection]:
+    parameters.append(argNameNew)
+    if argumentRepl[argSection][argNameNew] is not None:
+      parameters.append(argumentRepl[argSection][argNameNew])
   return parameters
 
 
@@ -136,10 +156,11 @@ if config is None:
   sys.exit(1)
 arguments = parse_arguments()
 profile = profile_select(config, arguments)
-parameters = profile_parameters(profile, arguments)
+parameters = profile_parameters(profile)
 executable = config["executable"]
 
 parameters.insert(0, executable)
-#print(parameters)
+#from shlex import join
+#print(join(parameters))
 result = subprocess.run(parameters)
 sys.exit(result.returncode)
