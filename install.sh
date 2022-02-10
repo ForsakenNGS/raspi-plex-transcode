@@ -26,3 +26,8 @@ else
   echo "Failed to create symlink to wrapper script!"
   exit 1
 fi
+
+# Ensure a configuration file exists
+if [ ! -f "$SCRIPT_DIR/ffmpeg-transcode.yaml" ]; then
+  cp "$SCRIPT_DIR/ffmpeg-transcode-example.yaml" "$SCRIPT_DIR/ffmpeg-transcode.yaml"
+fi
