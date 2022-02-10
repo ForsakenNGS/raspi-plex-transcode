@@ -21,44 +21,59 @@ git clone https://github.com/ForsakenNGS/raspi-plex-transcode.git
 cd raspi-plex-transcode
 ```
 
+From this point you can continue with one of the three utility script:
+- `compile.sh` Download the source of the plex ffmpeg-fork, install the required dependencies and compile it.
+- `install.sh` Replace the original plex transcoder
+- `uninstall.sh` Restore the original plex transcoder
+
+**IMPORTANT: Backup your stuff! I'm doing my best to make the process as safe as possible, but there is always the chance that something goes wrong. Be warned!**
+
+Most important file to backup is the original plex transcoder found by default at `/usr/lib/plexmediaserver/Plex Transcoder` e.g.:
+```
+mkdir ~/plex-backup
+cp "/usr/lib/plexmediaserver/Plex Transcoder" ~/plex-backup/
+```
+
 # Compiling plex ffmpeg with custom options
 
+First of all make sure you are in the directory of this projects git repository.
 
+Now simply run `./compile.sh` which will do the following:
+- Download the latest version of the plex-ffmpeg forks source code
+- Extract it
+- Install all required dependencies **(will ask for superuser permissions)**
+- Configure and compile the ffmpeg source code
 
-Here is what I did to compile the plex-fork of ffmpeg:
+If you want to manually adjust the configure parameters you can do so in the first few lines of the `compile.sh` script.
+
+# Installing the wrapper script
+
+First of all make sure you are in the directory of this projects git repository.
+
+Now simply run `./install.sh` which will do the following:
+- Create a backup of the original plex transcoder script `/usr/lib/plexmediaserver/Plex Transcoder` as `/usr/lib/plexmediaserver/Plex Transcoder Backup` if not already present **(will ask for superuser permissions)**
+- Remove the original plex transcoder script `/usr/lib/plexmediaserver/Plex Transcoder` **(will ask for superuser permissions)**
+- Put a symlink in its place that will redirect all encoding calls to this projects wrapper script **(will ask for superuser permissions)**
+
+# Uninstalling the wrapper script
+
+First of all make sure you are in the directory of this projects git repository.
+
+Now simply run `./uninstall.sh` which will do the following:
+- Remove the original plex transcoder script `/usr/lib/plexmediaserver/Plex Transcoder` **(will ask for superuser permissions)**
+- Move the backup of the original plex transcoder script `/usr/lib/plexmediaserver/Plex Transcoder Backup` back into its proper place at `/usr/lib/plexmediaserver/Plex Transcoder` **(will ask for superuser permissions)**
+
+# TLDR Install
 
 ```
-cd /home/pi
-cat /usr/lib/plexmediaserver/Resources/LICENSE | grep "Plex Transcoder"
-# Copy the URL from the grep command and use it for the following wget
-wget https://downloads.plex.tv/ffmpeg-source/plex-media-server-ffmpeg-gpl-62cc2bc17d.tar.gz
-tar -xvf plex-media-server-ffmpeg-gpl-*.tar.gz
-rm plex-media-server-ffmpeg-gpl-*.tar.gz
-mv plex-media-server-ffmpeg-gpl-* plex-media-server-ffmpeg
-cd plex-media-server-ffmpeg
-sudo apt install libass-dev libaom-dev libxvidcore-dev libvorbis-dev libv4l-dev libx265-dev libx264-dev libwebp-dev libspeex-dev librtmp-dev libopus-dev libmp3lame-dev libdav1d-dev libopencore-amrnb-dev libopencore-amrwb-dev libsnappy-dev libsoxr-dev libssh-dev libxml2-dev
-# If you want to apply patches or make changes to the ffmpeg source, do it here
-./configure --extra-cflags="-I/usr/local/include" --extra-ldflags="-L/usr/local/lib" --extra-libs="-lpthread -lm -latomic" --enable-gmp --enable-gpl --enable-libaom --enable-libass --enable-libdav1d --enable-libfreetype --enable-libmp3lame --enable-libopencore-amrnb --enable-libopencore-amrwb --enable-libopus --enable-librtmp --enable-libsnappy --enable-libsoxr --enable-libssh --enable-libvorbis --enable-libvpx --enable-libwebp --enable-libx264 --enable-libx265 --enable-libxml2 --enable-mmal --enable-eae --enable-nonfree --enable-version3 --target-os=linux --enable-pthreads --enable-openssl --enable-hardcoded-tables
-make -j5
-sudo usermod -a -G video plex
+cd ~
+mkdir plex-backup
+cp "/usr/lib/plexmediaserver/Plex Transcoder" plex-backup/
+git clone https://github.com/ForsakenNGS/raspi-plex-transcode.git
+cd raspi-plex-transcode
+./compile.sh
+./install.sh
 ```
-
-# Hooking into the plex transcode process
-
-In order to use a different (hardware-)encoder I wrote a small shell script that can be put in place like this:
-```
-cd /home/pi/plex-media-server-ffmpeg
-wget https://github.com/ForsakenNGS/raspi-plex-transcode/raw/main/ffmpeg-transcode
-wget https://github.com/ForsakenNGS/raspi-plex-transcode/raw/main/ffmpeg-transcode.yaml
-# Edit the configuration file to your needs
-chmod +x ffmpeg-transcode
-cd /usr/lib/plexmediaserver/
-sudo mv 'Plex Transcoder' 'Plex Transcoder Backup'
-sudo ln -s /home/pi/plex-media-server-ffmpeg/ffmpeg-transcode 'Plex Transcoder'
-```
-
-This will replace the output video encoder with the one defined in the configuration. (by default `h264_v4l2m2m`)
-Also it increases the buffer size (double of default) and allows to change the segment duration of the chunks that are being rendered.
 
 # Configuration
 
