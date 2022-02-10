@@ -111,3 +111,7 @@ Example that will match if the path or filename contain the string `anime` somew
       'value': '.*anime.*'
       'profile': 'anime'
 ```
+
+# Research sources for configuration
+
+Encoding options for `h264_v4l2m2m`: https://github.com/raspberrypi/firmware/issues/1612
