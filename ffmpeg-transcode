@@ -55,30 +55,48 @@ def parse_arguments():
     arguments[argSection][argName] = parse_argument_value(argValue)
   return arguments
 
-def profile_condition_arg(condition, arguments, currentProfile, currentPriority):
+def profile_add(profilesByGroup, profile, profileGroup, priority):
+  profilesByGroup[profileGroup] = profile;
+  profilesByGroup[profileGroup]["priority"] = priority;
+  return profilesByGroup
+
+def profile_condition_arg(condition, arguments, config, profilesByGroup):
+  # Get target profile settings
+  profileTargetName = condition["profile"]
+  profileTarget = config["profiles"][profileTargetName]
+  profileGroup = "general"
+  if "group" in profileTarget:
+    profileGroup = profileTarget["group"]
+  # Get current profile
+  currentProfile = None
+  currentPriority = 0
+  if profileGroup in profilesByGroup:
+    currentProfile = profilesByGroup[profileGroup]
+    if "priority" in currentProfile:
+      currentPriority = currentProfile["priority"]
   # Check priority
   conditionPriority = 0
   if "priority" in condition:
     conditionPriority = condition["priority"]
   if conditionPriority <= currentPriority:
-    return currentProfile, currentPriority
+    return profilesByGroup
   # Get argument value
   if not condition["argName"] in arguments[condition["argSection"]]:
     if condition["type"] == "missing":
       # Matches if argument is missing
-      return condition["profile"], conditionPriority
+      return profile_add(profilesByGroup, profileTarget, profileGroup, conditionPriority)
     else:
       # Condition type requires argument to be present
-      return currentProfile, currentPriority
+      return profilesByGroup
   value = arguments[condition["argSection"]][condition["argName"]]
   # Check condition
   if condition["type"] == "present":
     # Matches as soon as the argument is present
-    return condition["profile"], conditionPriority
+    return profile_add(profilesByGroup, profileTarget, profileGroup, conditionPriority)
   elif condition["type"] == "exact":
     # Exact value match
     if condition["value"] == value:
-      return condition["profile"], conditionPriority
+      return profile_add(profilesByGroup, profileTarget, profileGroup, conditionPriority)
   elif condition["type"] == "regex":
     # Regular expression match
     regexFlags = 0
@@ -86,31 +104,40 @@ def profile_condition_arg(condition, arguments, currentProfile, currentPriority)
       regexFlags += re.IGNORECASE
     regexPattern = re.compile(condition["value"], regexFlags)
     if regexPattern.match(value):
-      return condition["profile"], conditionPriority
-  return currentProfile, currentPriority
+      return profile_add(profilesByGroup, profileTarget, profileGroup, conditionPriority)
+  return profilesByGroup
 
 def profile_select(config, arguments):
   #print("Evaluating target profile...")
-  profileName = None
-  profilePriority = -1
+  profilesByGroup = {}
   if not "profile_select" in config:
     return None
+  # Apply default profile
   if "default" in config["profile_select"]:
-    profileName = config["profile_select"]["default"]
+    profileTarget = config["profiles"][ config["profile_select"]["default"] ]
+    profileGroup = "general"
+    if "group" in profileTarget:
+      profileGroup = profileTarget["group"]
+    profile_add(profilesByGroup, profileTarget, profileGroup, 0)
+  # Process profile conditions
   if "by_argument" in config["profile_select"]:
     for condition in config["profile_select"]["by_argument"]:
-      profileName, profilePriority = profile_condition_arg(condition, arguments, profileName, profilePriority)
-  if profileName in config["profiles"]:
-    return config["profiles"][profileName]
-  else:
-    return None
+      profilesByGroup = profile_condition_arg(condition, arguments, config, profilesByGroup)
+  # List and sort all selected profiles
+  profileList = []
+  for profileGroup in profilesByGroup:
+    profileList.append(profilesByGroup[profileGroup])
+  def profileSort(profile):
+    return profile["priority"]
+  profileList.sort(key=profileSort)
+  return profileList
 
 def profile_parameters(profile):
   argumentRepl = {
     "input": {},
     "output": {}
   }
-  if profile is not None:
+  for profile in profiles:
     # Apply profile overrides
     if profile["input"] is not None:
       for argName in profile["input"]:
@@ -165,8 +192,10 @@ if config is None:
   print("Failed to load configuration! Exiting.")
   sys.exit(1)
 arguments = parse_arguments()
-profile = profile_select(config, arguments)
-parameters = profile_parameters(profile)
+profiles = profile_select(config, arguments)
+print(profiles)
+sys.exit(0)
+parameters = profile_parameters(profiles)
 executable = config["executable"]
 parameters.insert(0, executable)
 

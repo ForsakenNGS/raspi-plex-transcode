@@ -1,15 +1,24 @@
-'executable': '/home/pi/raspi-plex-transcode/plex-media-server-ffmpeg/ffmpeg'
-'log': '/var/lib/plexmediaserver/plex-transcoder.log'
 'profiles':
   'h264':
+    'group': 'codec'
     'input':
     'output':
       '-codec:0': 'h264_v4l2m2m'
       '-b:v': '5M'
-      '-crf:0': '10'
-      '-maxrate:0': '50M'
       '-bufsize:0': '10M'
-      '-segment_format': '**REMOVE**'
+      '-crf:0': '**REMOVE**'
+      '-maxrate:0': '**REMOVE**'
+      '-x264opts:0': '**REMOVE**'
+  'mkv2mpegts_stream':
+    'group': 'format'
+    'input':
+    'output':
+      '-segment_format': 'mpegts'
+  'mkv2mpegts_download':
+    'group': 'format'
+    'input':
+    'output':
+      '-f': 'mpegts'
 'profile_select':
   'by_argument':
     -
@@ -18,3 +27,15 @@
       'type': 'exact'
       'value': 'libx264'
       'profile': 'h264'
+    -
+      'argSection': 'output'
+      'argName': '-segment_format'
+      'type': 'exact'
+      'value': 'matroska'
+      'profile': 'mkv2mpegts_stream'
+    -
+      'argSection': 'output'
+      'argName': '-f'
+      'type': 'exact'
+      'value': 'matroska'
+      'profile': 'mkv2mpegts_download'
