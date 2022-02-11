@@ -193,8 +193,6 @@ if config is None:
   sys.exit(1)
 arguments = parse_arguments()
 profiles = profile_select(config, arguments)
-print(profiles)
-sys.exit(0)
 parameters = profile_parameters(profiles)
 executable = config["executable"]
 parameters.insert(0, executable)
