@@ -69,7 +69,7 @@ def profile_condition_arg(condition, arguments, config, profilesByGroup):
     profileGroup = profileTarget["group"]
   # Get current profile
   currentProfile = None
-  currentPriority = 0
+  currentPriority = -1
   if profileGroup in profilesByGroup:
     currentProfile = profilesByGroup[profileGroup]
     if "priority" in currentProfile:
