@@ -21,7 +21,7 @@ cd "$SCRIPT_DIR"
 # Prepare dependencies for the used distribution
 case $SYSTEM_DISTRO in
   Raspbian)
-    APT_INSTALL_PACKAGES="libass-dev libaom-dev libxvidcore-dev libvorbis-dev libv4l-dev libx265-dev libx264-dev libwebp-dev libspeex-dev librtmp-dev libopus-dev libmp3lame-dev libdav1d-dev libopencore-amrnb-dev libopencore-amrwb-dev libsnappy-dev libsoxr-dev libssh-dev libxml2-dev"
+    APT_INSTALL_PACKAGES="python3 python3-yaml libass-dev libaom-dev libxvidcore-dev libvorbis-dev libv4l-dev libx265-dev libx264-dev libwebp-dev libspeex-dev librtmp-dev libopus-dev libmp3lame-dev libdav1d-dev libopencore-amrnb-dev libopencore-amrwb-dev libsnappy-dev libsoxr-dev libssh-dev libxml2-dev"
     ;;
   *)
     echo "Unsupported linux distribution: $SYSTEM_DISTRO"
