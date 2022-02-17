@@ -229,7 +229,7 @@ if ("log" in config) and ("debug" in config):
     logfile.write("Commandline: "+join(parameters)+"\n\n\n")
 
 # Start transcode process
-result = subprocess.run(parameters)
+result = subprocess.run(parameters, stderr = subprocess.PIPE)
 
 # Log transcode fail
 if result.returncode > 0:
@@ -237,6 +237,9 @@ if result.returncode > 0:
     with open(config["log"], "a") as logfile:
       logfile.write("Failed transcode at "+datetime.now().strftime("%Y-%m-%d %H:%M:%S")+"\n")
       logfile.write("Commandline: "+join(parameters)+"\n")
-      logfile.write("Return code: "+str(result.returncode)+"\n\n\n")
+      logfile.write("Return code: "+str(result.returncode)+"\n")
+      logfile.write("STDERR Output: ")
+      logfile.write(result.stderr)
+      logfile.write("\n\n\n")
 
 sys.exit(result.returncode)
