@@ -175,6 +175,7 @@ def profile_parameters(profile):
   parameters = []
   argSection = "input"
   argName = None
+  argNewAdded = False
   for arg in sys.argv[1:]:
     # Apply replacement if present
     replacement = None
@@ -191,7 +192,7 @@ def profile_parameters(profile):
       elif not arg.startswith("-"):
         arg = replacement
     # Check for end of input/output arguments
-    if (arg == "-i") or (arg == "-segment_header_filename"):
+    if not argNewAdded and ((arg == "-i") or (arg == "-init_seg_name") or (arg == "-segment_header_filename")):
       # Add parameters that were not present in the inital call from plex
       for argNameNew in argumentRepl[argSection]:
         argValueNew = argumentRepl[argSection][argNameNew]
@@ -201,6 +202,7 @@ def profile_parameters(profile):
           parameters.append(argNameNew)
           if argValueNew is not None:
             parameters.append(argValueNew)
+      argNewAdded = True
     # Append to parameter list
     parameters.append(arg)
     # Update state
@@ -209,6 +211,7 @@ def profile_parameters(profile):
     else:
       if argName == "-i":
         argSection = "output"
+        argNewAdded = False
       argName = None
   return parameters
 
