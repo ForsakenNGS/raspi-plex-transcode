@@ -1,3 +1,5 @@
+'executable': '/home/pi/raspi-plex-transcode/plex-media-server-ffmpeg/ffmpeg'
+'log': '/var/lib/plexmediaserver/plex-transcoder.log'
 'profiles':
   'h264':
     'group': 'codec'
@@ -20,6 +22,11 @@
     'output':
       '-f': 'mpegts'
 'profile_select':
+  'by_codec':
+    -
+      'source': 'flac'
+      'target': 'aac'
+      'priority': 10
   'by_argument':
     -
       'argSection': 'output'

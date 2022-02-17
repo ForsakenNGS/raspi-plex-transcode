@@ -120,9 +120,30 @@ def profile_select(config, arguments):
       profileGroup = profileTarget["group"]
     profile_add(profilesByGroup, profileTarget, profileGroup, 0)
   # Process profile conditions
+  # -> By Argument
   if "by_argument" in config["profile_select"]:
     for condition in config["profile_select"]["by_argument"]:
       profilesByGroup = profile_condition_arg(condition, arguments, config, profilesByGroup)
+  # -> By Codec
+  if "by_codec" in config["profile_select"]:
+    probeArgs = [ "ffprobe", "-v", "error", "-show_entries", "stream=codec_name", "-of", "default=noprint_wrappers=1:nokey=1", arguments["input"]["-i"] ]
+    probeResult = subprocess.run(probeArgs, universal_newlines = True, stdout = subprocess.PIPE)
+    probeCodecs = probeResult.stdout.splitlines()
+    for probeIndex, probeCodec in enumerate(probeCodecs):
+      for condition in config["profile_select"]["by_codec"]:
+        if condition["source"] == probeCodec:
+          conditionPriority = 0
+          if "priority" in condition:
+            conditionPriority = condition["priority"]
+          profileCodecGroup = "codec"+str(probeIndex)
+          profileCodec = {
+            "group": profileCodecGroup,
+            "input": {},
+            "output": {
+              "-codec:"+str(probeIndex): condition["target"]
+            }
+          }
+          profile_add(profilesByGroup, profileCodec, profileCodecGroup, conditionPriority)
   # List and sort all selected profiles
   profileList = []
   for profileGroup in profilesByGroup:
