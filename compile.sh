@@ -1,7 +1,12 @@
 #!/bin/bash
 
+set -e
+
+# System information
+SYSTEM_DISTRO=`lsb_release -s -i`
+
 # Settings for the compile script
-APT_INSTALL_PACKAGES="libass-dev libaom-dev libxvidcore-dev libvorbis-dev libv4l-dev libx265-dev libx264-dev libwebp-dev libspeex-dev librtmp-dev libopus-dev libmp3lame-dev libdav1d-dev libopencore-amrnb-dev libopencore-amrwb-dev libsnappy-dev libsoxr-dev libssh-dev libxml2-dev"
+APT_INSTALL_PACKAGES=""
 FFMPEG_CONFIGURE_FLAGS='--extra-cflags="-I/usr/local/include" --extra-ldflags="-L/usr/local/lib" --extra-libs="-lpthread -lm -latomic" --enable-gmp --enable-gpl --enable-libaom --enable-libass --enable-libdav1d --enable-libfreetype --enable-libmp3lame --enable-libopencore-amrnb --enable-libopencore-amrwb --enable-libopus --enable-librtmp --enable-libsnappy --enable-libsoxr --enable-libssh --enable-libvorbis --enable-libvpx --enable-libwebp --enable-libx264 --enable-libx265 --enable-libxml2 --enable-mmal --enable-eae --enable-nonfree --enable-version3 --target-os=linux --enable-pthreads --enable-openssl --enable-hardcoded-tables'
 
 # Track tasks
@@ -12,6 +17,18 @@ FFMPEG_COMPILE="no"
 # Ensure the script directory is the current working directory
 SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 cd "$SCRIPT_DIR"
+
+# Prepare dependencies for the used distribution
+case $SYSTEM_DISTRO in
+  Raspbian)
+    APT_INSTALL_PACKAGES="libass-dev libaom-dev libxvidcore-dev libvorbis-dev libv4l-dev libx265-dev libx264-dev libwebp-dev libspeex-dev librtmp-dev libopus-dev libmp3lame-dev libdav1d-dev libopencore-amrnb-dev libopencore-amrwb-dev libsnappy-dev libsoxr-dev libssh-dev libxml2-dev"
+    ;;
+  *)
+    echo "Unsupported linux distribution: $SYSTEM_DISTRO"
+    echo "!!! DEPENDENCIES WILL NOT BE INSTALLED - YOU WILL HAVE TO OBTAIN THEM MANUALLY !!!"
+    echo "$APT_INSTALL_PACKAGES" > "$SCRIPT_DIR/apt-packages-installed"
+    ;;
+esac
 
 # URL for the source code of the plex ffmpeg-fork
 PLEX_FFMPEG_SOURCE_URL="https://downloads.plex.tv/ffmpeg-source/plex-media-server-ffmpeg-gpl-62cc2bc17d.tar.gz"
@@ -61,7 +78,7 @@ if [ -f "$SCRIPT_DIR/apt-packages-installed" ]; then
 fi
 if [ "$INSTALL_DEPENDENCIES" == "yes" ]; then
   echo "Installing missing apt packages"
-  sudo apt install $APT_INSTALL_PACKAGES
+  sudo apt install $APT_INSTALL_PARAMS $APT_INSTALL_PACKAGES
   echo "$APT_INSTALL_PACKAGES" > "$SCRIPT_DIR/apt-packages-installed"
   FFMPEG_COMPILE="yes"
 fi
