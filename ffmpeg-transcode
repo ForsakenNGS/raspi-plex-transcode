@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 import re
 import yaml
@@ -131,7 +131,7 @@ def profile_select(config, arguments):
       profilesByGroup = profile_condition_arg(condition, arguments, config, profilesByGroup)
   # -> By Codec
   if "by_codec" in config["profile_select"]:
-    probeArgs = [ "ffprobe", "-v", "error", "-show_entries", "stream=codec_name", "-of", "default=noprint_wrappers=1:nokey=1", arguments["input"]["-i"] ]
+    probeArgs = [ config["ffprobe"], "-v", "error", "-show_entries", "stream=codec_name", "-of", "default=noprint_wrappers=1:nokey=1", arguments["input"]["-i"] ]
     probeResult = subprocess.run(probeArgs, universal_newlines = True, stdout = subprocess.PIPE)
     probeCodecs = probeResult.stdout.splitlines()
     for probeIndex, probeCodec in enumerate(probeCodecs):
@@ -220,7 +220,7 @@ if config is None:
 arguments = parse_arguments()
 profiles = profile_select(config, arguments)
 parameters = profile_parameters(profiles)
-executable = config["executable"]
+executable = config["ffmpeg"]
 parameters.insert(0, executable)
 
 if ("log" in config) and ("debug" in config):
