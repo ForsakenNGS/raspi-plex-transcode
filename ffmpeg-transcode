@@ -12,6 +12,9 @@ def load_configuration():
   #print("Loading configuration...")
   config = None
   configFile = os.path.dirname(os.path.realpath(__file__))+"/ffmpeg-transcode.yaml"
+  if os.path.isdir('/config'):
+    # Use /config if existing (for docker support)
+    configFile = "/config/ffmpeg-transcode.yaml"
   if not os.path.isfile(configFile):
     # Download default config file via wget
     subprocess.run(["wget", "-q", "https://github.com/ForsakenNGS/raspi-plex-transcode/raw/main/ffmpeg-transcode-example.yaml", "-O", configFile]);
