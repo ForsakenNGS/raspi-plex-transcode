@@ -96,10 +96,13 @@ if [ "$FFMPEG_COMPILE" == "yes" ]; then
   echo "Compiling ffmpeg"
   cd "$SCRIPT_DIR/plex-media-server-ffmpeg"
   # Apply patches
+  echo "- Apply patches"
   git apply "$SCRIPT_DIR/patches/0001-avcodec-v4l2_m2m_dec-dequeue-frame-if-input-isn-t-re.patch"
   # Configure
+  echo "- Configure"
   eval "./configure $FFMPEG_CONFIGURE_FLAGS"
   # Compile
+  echo "- Make"
   make -j5
   cd "$SCRIPT_DIR"
   echo "$FFMPEG_CONFIGURE_FLAGS" > "$SCRIPT_DIR/ffmpeg-compiled"
