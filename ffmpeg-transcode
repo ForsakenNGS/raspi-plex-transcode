@@ -285,17 +285,8 @@ def proxy_transcode(config):
           logfile.write("Starting proxy-transcode at "+datetime.now().strftime("%Y-%m-%d %H:%M:%S")+"\n")
           logfile.write("Commandline: "+join(cmdArgs)+"\n\n\n")
 
-      cmdResultCode = 0
-      cmdResult = None
-      try:
-        cmdResult = subprocess.Popen(cmdArgs)
-        cmdResult.wait()
-        cmdResultCode = cmdResult.returncode
-      except TranscodeInterrupted:
-        # Transcode was interrupted by plex / user
-        os.killpg(os.getpgid(cmdResult.pid), signal.SIGTERM)
-        cmdResultCode = 0
-      if cmdResultCode > 0:
+      cmdResult = subprocess.run(cmdArgs)
+      if cmdResult.returncode > 0:
         if "log" in config:
           with open(config["log"], "a") as logfile:
             logfile.write("Failed proxy-transcode at "+datetime.now().strftime("%Y-%m-%d %H:%M:%S")+"\n")
