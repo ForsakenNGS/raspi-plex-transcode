@@ -286,11 +286,14 @@ def proxy_transcode(config):
           logfile.write("Commandline: "+join(cmdArgs)+"\n\n\n")
 
       cmdResultCode = 0
+      cmdResult = None
       try:
-        cmdResult = subprocess.run(cmdArgs)
+        cmdResult = subprocess.Popen(cmdArgs)
+        cmdResult.wait()
         cmdResultCode = cmdResult.returncode
       except TranscodeInterrupted:
         # Transcode was interrupted by plex / user
+        os.killpg(os.getpgid(cmdResult.pid), signal.SIGTERM)
         cmdResultCode = 0
       if cmdResultCode > 0:
         if "log" in config:
