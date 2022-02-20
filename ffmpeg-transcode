@@ -288,8 +288,9 @@ def proxy_transcode(config):
             logfile.write("Failed proxy-transcode at "+datetime.now().strftime("%Y-%m-%d %H:%M:%S")+"\n")
             logfile.write("Commandline: "+join(cmdArgs)+"\n")
             logfile.write("Return code: "+str(cmdResult.returncode)+"\n")
-            logfile.write("STDERR Output: ")
-            logfile.write(cmdResult.stderr)
+            if cmdResult.stderr is not None:
+              logfile.write("STDERR Output: ")
+              logfile.write(cmdResult.stderr)
             logfile.write("\n\n\n")
         continue
       else:
@@ -332,7 +333,9 @@ if proxy_transcode(config):
         logfile.write("Commandline: "+join(parameters)+"\n")
         logfile.write("Return code: "+str(result.returncode)+"\n")
         logfile.write("STDERR Output: ")
-        logfile.write(result.stderr)
+        if result.stderr is not None:
+          logfile.write("STDERR Output: ")
+          logfile.write(result.stderr)
         logfile.write("\n\n\n")
 
   sys.exit(result.returncode)
