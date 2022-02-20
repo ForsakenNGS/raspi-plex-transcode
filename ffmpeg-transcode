@@ -270,7 +270,7 @@ def proxy_transcode(config):
       continue
     # Execute stream
     if proxyType == "ssh":
-      cmdArgs = [ "ssh", "-R", "32400:localhost:32400" ]
+      cmdArgs = [ "ssh" ]
       if "ssh-options" in proxyConfig:
         for cmdSshArg in proxyConfig["ssh-options"]:
           cmdArgs.append(cmdSshArg)
