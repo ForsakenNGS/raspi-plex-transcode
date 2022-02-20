@@ -6,6 +6,7 @@ import os
 import sys
 import subprocess
 import platform
+import signal
 from shlex import join
 from shlex import split
 from datetime import datetime
@@ -308,26 +309,43 @@ def proxy_transcode(config):
   return False
 
 # ------------------------------------------------------------------------------
+# Signal handler
+def signal_handler(sig, frame):
+    sys.exit(0)
+
+# ------------------------------------------------------------------------------
 # Entry point
+
+# Register handler for sigint/sigterm
+signal.signal(signal.SIGINT, signal_handler)
+signal.signal(signal.SIGTERM, signal_handler)
+
+# Load configuration
 config = load_configuration()
 if config is None:
   print("Failed to load configuration! Exiting.")
   sys.exit(1)
+
+# Parse arguments
 arguments = parse_arguments()
+
+# Try to pass transcode to proxy
 if not proxy_transcode(config):
+  # No proxy configured / available
+  # Select matching profiles
   profiles = profile_select(config, arguments)
+  # Get modified parameters
   parameters = profile_parameters(profiles)
+  # Prepare transcode call
   executable = resolve_absolute_path(config["ffmpeg"])
   parameters.insert(0, executable)
-
+  # Log transcode call (if debug enabled)
   if ("log" in config) and ("debug" in config):
     with open(config["log"], "a") as logfile:
       logfile.write("Starting transcode at "+datetime.now().strftime("%Y-%m-%d %H:%M:%S")+"\n")
       logfile.write("Commandline: "+join(parameters)+"\n\n\n")
-
   # Start transcode process
   result = subprocess.run(parameters, stderr = subprocess.PIPE)
-
   # Log transcode fail
   if result.returncode > 0:
     if "log" in config:
@@ -340,7 +358,7 @@ if not proxy_transcode(config):
           logfile.write("STDERR Output: ")
           logfile.write(result.stderr)
         logfile.write("\n\n\n")
-
+  # Exit with same return code as the transcode process
   sys.exit(result.returncode)
 else:
   sys.exit(0)
