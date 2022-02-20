@@ -12,7 +12,7 @@ from datetime import datetime
 # ------------------------------------------------------------------------------
 # Resolve absolute path (if given path is relative)
 def resolve_absolute_path(filename):
-  if arg.startswith("/"):
+  if filename.startswith("/"):
     # Absolute path
     return filename
   else:
