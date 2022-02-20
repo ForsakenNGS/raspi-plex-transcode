@@ -314,7 +314,7 @@ if config is None:
   print("Failed to load configuration! Exiting.")
   sys.exit(1)
 arguments = parse_arguments()
-if proxy_transcode(config):
+if not proxy_transcode(config):
   profiles = profile_select(config, arguments)
   parameters = profile_parameters(profiles)
   executable = resolve_absolute_path(config["ffmpeg"])
