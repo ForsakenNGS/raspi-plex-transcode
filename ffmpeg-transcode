@@ -283,6 +283,14 @@ def proxy_transcode(config):
 
       cmdResult = subprocess.run(cmdArgs)
       if cmdResult.returncode > 0:
+        if "log" in config:
+          with open(config["log"], "a") as logfile:
+            logfile.write("Failed proxy-transcode at "+datetime.now().strftime("%Y-%m-%d %H:%M:%S")+"\n")
+            logfile.write("Commandline: "+join(cmdArgs)+"\n")
+            logfile.write("Return code: "+str(cmdResult.returncode)+"\n")
+            logfile.write("STDERR Output: ")
+            logfile.write(cmdResult.stderr)
+            logfile.write("\n\n\n")
         continue
       else:
         # Execute post-commands
