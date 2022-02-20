@@ -1,6 +1,6 @@
 'version': '1.0.0-1'
-'ffmpeg': '/home/pi/raspi-plex-transcode/plex-media-server-ffmpeg/ffmpeg'
-'ffprobe': '/home/pi/raspi-plex-transcode/plex-media-server-ffmpeg/ffprobe'
+'ffmpeg': 'plex-media-server-ffmpeg/ffmpeg'
+'ffprobe': 'plex-media-server-ffmpeg/ffprobe'
 'log': '/var/lib/plexmediaserver/plex-transcoder.log'
 'profiles':
   'h264':

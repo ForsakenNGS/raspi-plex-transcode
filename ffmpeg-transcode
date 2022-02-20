@@ -8,10 +8,19 @@ import subprocess
 from shlex import join
 from datetime import datetime
 
+def resolve_absolute_path(filename):
+  if arg.startswith("/"):
+    # Absolute path
+    return filename
+  else:
+    # Relative path
+    return os.path.dirname(os.path.realpath(__file__))+"/"+filename
+
+
 def load_configuration():
   #print("Loading configuration...")
   config = None
-  configFile = os.path.dirname(os.path.realpath(__file__))+"/ffmpeg-transcode.yaml"
+  configFile = resolve_absolute_path("ffmpeg-transcode.yaml")
   configFallback = "ffmpeg-transcode-example.yaml"
   if os.path.isdir('/config'):
     # Use /config if existing (for docker support)
@@ -131,7 +140,8 @@ def profile_select(config, arguments):
       profilesByGroup = profile_condition_arg(condition, arguments, config, profilesByGroup)
   # -> By Codec
   if "by_codec" in config["profile_select"]:
-    probeArgs = [ config["ffprobe"], "-v", "error", "-show_entries", "stream=codec_name", "-of", "default=noprint_wrappers=1:nokey=1", arguments["input"]["-i"] ]
+    probeBin = resolve_absolute_path(config["ffprobe"])
+    probeArgs = [ probeBin, "-v", "error", "-show_entries", "stream=codec_name", "-of", "default=noprint_wrappers=1:nokey=1", arguments["input"]["-i"] ]
     probeResult = subprocess.run(probeArgs, universal_newlines = True, stdout = subprocess.PIPE)
     probeCodecs = probeResult.stdout.splitlines()
     for probeIndex, probeCodec in enumerate(probeCodecs):
@@ -223,7 +233,7 @@ if config is None:
 arguments = parse_arguments()
 profiles = profile_select(config, arguments)
 parameters = profile_parameters(profiles)
-executable = config["ffmpeg"]
+executable = resolve_absolute_path(config["ffmpeg"])
 parameters.insert(0, executable)
 
 if ("log" in config) and ("debug" in config):

@@ -6,6 +6,7 @@ set -e
 SYSTEM_DISTRO=`lsb_release -s -i`
 
 # Settings for the compile script
+APT_COMMAND="apt install"
 APT_INSTALL_PACKAGES=""
 FFMPEG_CONFIGURE_FLAGS='--extra-cflags="-I/usr/local/include" --extra-ldflags="-L/usr/local/lib" --extra-libs="-lpthread -lm -latomic" --enable-gmp --enable-gpl --enable-libaom --enable-libass --enable-libdav1d --enable-libfreetype --enable-libmp3lame --enable-libopencore-amrnb --enable-libopencore-amrwb --enable-libopus --enable-librtmp --enable-libsnappy --enable-libsoxr --enable-libssh --enable-libvorbis --enable-libvpx --enable-libwebp --enable-libx264 --enable-libx265 --enable-libxml2 --enable-mmal --enable-eae --enable-nonfree --enable-version3 --target-os=linux --enable-pthreads --enable-openssl --enable-hardcoded-tables'
 
@@ -22,6 +23,11 @@ cd "$SCRIPT_DIR"
 case $SYSTEM_DISTRO in
   Raspbian)
     APT_INSTALL_PACKAGES="python3 python3-yaml libass-dev libaom-dev libxvidcore-dev libvorbis-dev libv4l-dev libx265-dev libx264-dev libwebp-dev libspeex-dev librtmp-dev libopus-dev libmp3lame-dev libdav1d-dev libopencore-amrnb-dev libopencore-amrwb-dev libsnappy-dev libsoxr-dev libssh-dev libxml2-dev"
+    ;;
+  ManjaroLinux)
+    APT_COMMAND="pamac install"
+    APT_INSTALL_PACKAGES="yasm make pkgconf python python-yaml libass aom xvidcore libvorbis libv4l x265 x264 libwebp speex librtmp0 opus dav1d opencore-amr snappy libsoxr libssh libxml2"
+    FFMPEG_CONFIGURE_FLAGS='--extra-cflags="-I/usr/include" --extra-ldflags="-L/usr/lib" --extra-libs="-lpthread -lm -latomic" --enable-gmp --enable-gpl --enable-libaom --enable-libass --enable-libdav1d --enable-libfreetype --enable-libmp3lame --enable-libopencore-amrnb --enable-libopencore-amrwb --enable-libopus --enable-librtmp --enable-libsnappy --enable-libsoxr --enable-libssh --enable-libvorbis --enable-libvpx --enable-libwebp --enable-libx264 --enable-libx265 --enable-libxml2 --enable-eae --enable-nonfree --enable-version3 --target-os=linux --enable-pthreads --enable-openssl --enable-hardcoded-tables'
     ;;
   *)
     echo "Unsupported linux distribution: $SYSTEM_DISTRO"
@@ -78,7 +84,7 @@ if [ -f "$SCRIPT_DIR/apt-packages-installed" ]; then
 fi
 if [ "$INSTALL_DEPENDENCIES" == "yes" ]; then
   echo "Installing missing apt packages"
-  sudo apt install $APT_INSTALL_PARAMS $APT_INSTALL_PACKAGES
+  eval "sudo $APT_COMMAND $APT_INSTALL_PARAMS $APT_INSTALL_PACKAGES"
   echo "$APT_INSTALL_PACKAGES" > "$SCRIPT_DIR/apt-packages-installed"
   FFMPEG_COMPILE="yes"
 fi
