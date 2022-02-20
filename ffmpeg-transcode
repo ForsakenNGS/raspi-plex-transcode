@@ -240,6 +240,19 @@ def profile_parameters(profiles):
   return parameters
 
 # ------------------------------------------------------------------------------
+# Start process for port-fowarding from transcode proxy to the local plex instance
+def proxy_tunnel(proxyConfig):
+  proxyHost = proxyConfig["host"]
+  proxyUser = proxyConfig["user"]
+  tunnelArgs = [ "ssh", "-N", "-R", "32400:127.0.0.1:32400", "-o", "ExitOnForwardFailure=yes", proxyUser+"@"+proxyHost ]
+  tunnelProc = subprocess.Popen(tunnelArgs, start_new_session=True)
+  try:
+    tunnelProc.wait(timeout=2)
+    return False    # Failed to create tunnel, assume already open
+  except TimeoutExpired:
+    return True     # New tunnel established
+
+# ------------------------------------------------------------------------------
 # Transcode stream on a proxy transcode-server (or return False to transcode locally)
 def proxy_transcode(config):
   if not "proxys" in config:
@@ -271,6 +284,7 @@ def proxy_transcode(config):
       continue
     # Execute stream
     if proxyType == "ssh":
+      proxy_tunnel(proxyConfig)
       cmdArgs = [ "ssh" ]
       if "ssh-options" in proxyConfig:
         for cmdSshArg in proxyConfig["ssh-options"]:
@@ -278,7 +292,7 @@ def proxy_transcode(config):
       cmdArgs.append(proxyUser+"@"+proxyHost)
       cmdFfmpegArgs = sys.argv[1:]
       cmdFfmpegArgs.insert(0, proxyConfig["ffmpeg"])
-      cmdArgs.append(join(cmdFfmpegArgs).replace("127.0.0.1", plexHostname))
+      cmdArgs.append(join(cmdFfmpegArgs))
 
       if ("log" in config) and ("debug" in config):
         with open(config["log"], "a") as logfile:
@@ -309,19 +323,7 @@ def proxy_transcode(config):
   return False
 
 # ------------------------------------------------------------------------------
-# Signal handler
-class TranscodeInterrupted(Exception):
-    pass
-
-def signal_handler(sig, frame):
-    raise TranscodeInterrupted()
-
-# ------------------------------------------------------------------------------
 # Entry point
-
-# Register handler for sigint/sigterm
-signal.signal(signal.SIGINT, signal_handler)
-signal.signal(signal.SIGTERM, signal_handler)
 
 # Load configuration
 config = load_configuration()
