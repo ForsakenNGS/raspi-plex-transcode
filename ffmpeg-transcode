@@ -5,6 +5,7 @@ import yaml
 import os
 import sys
 import subprocess
+import platform
 from shlex import join
 from shlex import split
 from datetime import datetime
@@ -243,6 +244,8 @@ def proxy_transcode(config):
   if not "proxys" in config:
     return False
   for proxyConfig in config["proxys"]:
+    # Local configuration
+    plexHostname = platform.node()
     # Parse configuration
     proxyType = "ssh"
     if "type" in proxyConfig:
@@ -274,7 +277,7 @@ def proxy_transcode(config):
       cmdArgs.append(proxyUser+"@"+proxyHost)
       cmdFfmpegArgs = sys.argv[1:]
       cmdFfmpegArgs.insert(0, proxyConfig["ffmpeg"])
-      cmdArgs.append(join(cmdFfmpegArgs))
+      cmdArgs.append(join(cmdFfmpegArgs).replace("127.0.0.1", plexHostname))
 
       if ("log" in config) and ("debug" in config):
         with open(config["log"], "a") as logfile:
