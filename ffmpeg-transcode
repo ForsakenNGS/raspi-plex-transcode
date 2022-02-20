@@ -291,6 +291,7 @@ def proxy_transcode(config):
         cmdResultCode = cmdResult.returncode
       except TranscodeInterrupted:
         # Transcode was interrupted by plex / user
+        cmdResultCode = 0
       if cmdResultCode > 0:
         if "log" in config:
           with open(config["log"], "a") as logfile:
