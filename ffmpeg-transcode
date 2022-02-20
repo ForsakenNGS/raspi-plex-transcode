@@ -6,8 +6,11 @@ import os
 import sys
 import subprocess
 from shlex import join
+from shlex import split
 from datetime import datetime
 
+# ------------------------------------------------------------------------------
+# Resolve absolute path (if given path is relative)
 def resolve_absolute_path(filename):
   if arg.startswith("/"):
     # Absolute path
@@ -16,7 +19,8 @@ def resolve_absolute_path(filename):
     # Relative path
     return os.path.dirname(os.path.realpath(__file__))+"/"+filename
 
-
+# ------------------------------------------------------------------------------
+# Load configuration file
 def load_configuration():
   #print("Loading configuration...")
   config = None
@@ -44,6 +48,8 @@ def parse_argument_value(value):
   else:
     return " ".join(value)
 
+# ------------------------------------------------------------------------------
+# Parse default arguments
 def parse_arguments():
   #print("Parsing commandline arguments...")
   arguments = {
@@ -74,6 +80,8 @@ def profile_add(profilesByGroup, profile, profileGroup, priority):
   profilesByGroup[profileGroup]["priority"] = priority;
   return profilesByGroup
 
+# ------------------------------------------------------------------------------
+# Check profile condition and add target profile if applicable
 def profile_condition_arg(condition, arguments, config, profilesByGroup):
   # Get target profile settings
   profileTargetName = condition["profile"]
@@ -121,6 +129,8 @@ def profile_condition_arg(condition, arguments, config, profilesByGroup):
       return profile_add(profilesByGroup, profileTarget, profileGroup, conditionPriority)
   return profilesByGroup
 
+# ------------------------------------------------------------------------------
+# Select profiles to be used based on config and default arguments
 def profile_select(config, arguments):
   #print("Evaluating target profile...")
   profilesByGroup = {}
@@ -168,7 +178,9 @@ def profile_select(config, arguments):
   profileList.sort(key=profileSort)
   return profileList
 
-def profile_parameters(profile):
+# ------------------------------------------------------------------------------
+# Modify parameters based on the profiles given
+def profile_parameters(profiles):
   argumentRepl = {
     "input": {},
     "output": {}
@@ -225,34 +237,88 @@ def profile_parameters(profile):
       argName = None
   return parameters
 
+# ------------------------------------------------------------------------------
+# Transcode stream on a proxy transcode-server (or return False to transcode locally)
+def proxy_transcode(config, arguments):
+  if not "proxys" in config:
+    return False
+  for proxyConfig in config["proxys"]:
+    # Parse configuration
+    proxyType = "ssh"
+    if "type" in proxyConfig:
+      proxyType = proxyConfig["type"]
+    proxyHost = proxyConfig["host"]
+    proxyCmdsPre = []
+    proxyCmdsPost = []
+    if "cmds-pre" in proxyConfig:
+      proxyCmdsPre = proxyConfig["cmds-pre"]
+    if "cmds-post" in proxyConfig:
+      proxyCmdsPost = proxyConfig["cmds-post"]
+    proxyCmdsPreFailed = False
+    # Execute pre-commands
+    for cmdPre in proxyCmdsPre:
+      cmdArgs = split(cmdPre)
+      cmdResult = subprocess.run(cmdArgs)
+      if cmdResult.returncode > 0:
+        proxyCmdsPreFailed = True
+        break
+    if proxyCmdsPreFailed:
+      continue
+    # Execute stream
+    if proxyType == "ssh":
+      cmdArgs = [ "ssh", "-L", "32400:32400" ]
+      if "ssh-options" in proxyConfig:
+        for cmdSshArg in proxyConfig["ssh-options"]:
+          cmdArgs.append(cmdSshArg)
+      cmdArgs.append(proxyHost)
+      parameters.insert(0, proxyConfig["ffmpeg"])
+      cmdArgs.append(join(arguments))
+      cmdResult = subprocess.run(cmdArgs)
+      if cmdResult.returncode > 0:
+        continue
+      else:
+        # Execute post-commands
+        for cmdPost in proxyCmdsPost:
+          cmdArgs = split(cmdPost)
+          cmdResult = subprocess.run(cmdArgs)
+          if cmdResult.returncode > 0:
+            break
+        return True
+  # No proxy transcode executed (successfully)
+  return False
 
+# ------------------------------------------------------------------------------
+# Entry point
 config = load_configuration()
 if config is None:
   print("Failed to load configuration! Exiting.")
   sys.exit(1)
 arguments = parse_arguments()
-profiles = profile_select(config, arguments)
-parameters = profile_parameters(profiles)
-executable = resolve_absolute_path(config["ffmpeg"])
-parameters.insert(0, executable)
+if proxy_transcode(config, arguments):
+  profiles = profile_select(config, arguments)
+  parameters = profile_parameters(profiles)
+  executable = resolve_absolute_path(config["ffmpeg"])
+  parameters.insert(0, executable)
 
-if ("log" in config) and ("debug" in config):
-  with open(config["log"], "a") as logfile:
-    logfile.write("Starting transcode at "+datetime.now().strftime("%Y-%m-%d %H:%M:%S")+"\n")
-    logfile.write("Commandline: "+join(parameters)+"\n\n\n")
-
-# Start transcode process
-result = subprocess.run(parameters, stderr = subprocess.PIPE)
-
-# Log transcode fail
-if result.returncode > 0:
-  if "log" in config:
+  if ("log" in config) and ("debug" in config):
     with open(config["log"], "a") as logfile:
-      logfile.write("Failed transcode at "+datetime.now().strftime("%Y-%m-%d %H:%M:%S")+"\n")
-      logfile.write("Commandline: "+join(parameters)+"\n")
-      logfile.write("Return code: "+str(result.returncode)+"\n")
-      logfile.write("STDERR Output: ")
-      logfile.write(result.stderr)
-      logfile.write("\n\n\n")
+      logfile.write("Starting transcode at "+datetime.now().strftime("%Y-%m-%d %H:%M:%S")+"\n")
+      logfile.write("Commandline: "+join(parameters)+"\n\n\n")
 
-sys.exit(result.returncode)
+  # Start transcode process
+  result = subprocess.run(parameters, stderr = subprocess.PIPE)
+
+  # Log transcode fail
+  if result.returncode > 0:
+    if "log" in config:
+      with open(config["log"], "a") as logfile:
+        logfile.write("Failed transcode at "+datetime.now().strftime("%Y-%m-%d %H:%M:%S")+"\n")
+        logfile.write("Commandline: "+join(parameters)+"\n")
+        logfile.write("Return code: "+str(result.returncode)+"\n")
+        logfile.write("STDERR Output: ")
+        logfile.write(result.stderr)
+        logfile.write("\n\n\n")
+
+  sys.exit(result.returncode)
+else:
+  sys.exit(0)
