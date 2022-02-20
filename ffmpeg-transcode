@@ -239,7 +239,7 @@ def profile_parameters(profiles):
 
 # ------------------------------------------------------------------------------
 # Transcode stream on a proxy transcode-server (or return False to transcode locally)
-def proxy_transcode(config, arguments):
+def proxy_transcode(config):
   if not "proxys" in config:
     return False
   for proxyConfig in config["proxys"]:
@@ -272,7 +272,7 @@ def proxy_transcode(config, arguments):
         for cmdSshArg in proxyConfig["ssh-options"]:
           cmdArgs.append(cmdSshArg)
       cmdArgs.append(proxyUser+"@"+proxyHost)
-      cmdFfmpegArgs = arguments
+      cmdFfmpegArgs = sys.argv[1:]
       cmdFfmpegArgs.insert(0, proxyConfig["ffmpeg"])
       cmdArgs.append(join(cmdFfmpegArgs))
 
@@ -302,7 +302,7 @@ if config is None:
   print("Failed to load configuration! Exiting.")
   sys.exit(1)
 arguments = parse_arguments()
-if proxy_transcode(config, arguments):
+if proxy_transcode(config):
   profiles = profile_select(config, arguments)
   parameters = profile_parameters(profiles)
   executable = resolve_absolute_path(config["ffmpeg"])
