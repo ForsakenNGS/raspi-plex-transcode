@@ -249,7 +249,7 @@ def proxy_tunnel(proxyConfig):
   try:
     tunnelProc.wait(timeout=2)
     return False    # Failed to create tunnel, assume already open
-  except TimeoutExpired:
+  except subprocess.TimeoutExpired:
     return True     # New tunnel established
 
 # ------------------------------------------------------------------------------
