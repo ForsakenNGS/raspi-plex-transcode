@@ -248,6 +248,7 @@ def proxy_transcode(config, arguments):
     if "type" in proxyConfig:
       proxyType = proxyConfig["type"]
     proxyHost = proxyConfig["host"]
+    proxyUser = proxyConfig["user"]
     proxyCmdsPre = []
     proxyCmdsPost = []
     if "cmds-pre" in proxyConfig:
@@ -270,9 +271,10 @@ def proxy_transcode(config, arguments):
       if "ssh-options" in proxyConfig:
         for cmdSshArg in proxyConfig["ssh-options"]:
           cmdArgs.append(cmdSshArg)
-      cmdArgs.append(proxyHost)
-      parameters.insert(0, proxyConfig["ffmpeg"])
-      cmdArgs.append(join(arguments))
+      cmdArgs.append(proxyUser+"@"+proxyHost)
+      cmdFfmpegArgs = arguments
+      cmdFfmpegArgs.insert(0, proxyConfig["ffmpeg"])
+      cmdArgs.append(join(cmdFfmpegArgs))
 
       if ("log" in config) and ("debug" in config):
         with open(config["log"], "a") as logfile:
