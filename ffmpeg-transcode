@@ -170,6 +170,12 @@ def profile_select(config, arguments):
               "-codec:"+str(probeIndex): condition["target"]
             }
           }
+          if "input" in condition:
+            for inputArg, inputVal in condition["input"].items():
+              profileCodec["input"][inputArg.replace("$stream$", str(probeIndex))] = inputVal
+          if "output" in condition:
+            for inputArg, inputVal in condition["output"].items():
+              profileCodec["output"][inputArg.replace("$stream$", str(probeIndex))] = inputVal
           profile_add(profilesByGroup, profileCodec, profileCodecGroup, conditionPriority)
   # List and sort all selected profiles
   profileList = []
